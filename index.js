@@ -108,8 +108,6 @@ function MiFlowerCarePlugin(log, config) {
             .updateValue(data.batteryLevel);
         that.batteryService.getCharacteristic(Characteristic.StatusLowBattery)
             .updateValue(data.batteryLevel <= 10 ? Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
-        that.batteryService.getCharacteristic(Characteristic.StatusActive)
-            .updateValue(true);
 
         that.lightService.getCharacteristic(Characteristic.StatusLowBattery)
             .updateValue(data.batteryLevel <= 10 ? Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
@@ -213,8 +211,6 @@ MiFlowerCarePlugin.prototype.setUpServices = function () {
     this.batteryService.setCharacteristic(Characteristic.ChargingState, Characteristic.ChargingState.NOT_CHARGEABLE);
     this.batteryService.getCharacteristic(Characteristic.StatusLowBattery)
         .on('get', this.getStatusLowBattery.bind(this));
-    this.batteryService.getCharacteristic(Characteristic.StatusActive)
-        .on('get', this.getStatusActive.bind(this));
 
     this.lightService = new Service.LightSensor(this.name);
     this.lightService.getCharacteristic(Characteristic.CurrentAmbientLightLevel)
