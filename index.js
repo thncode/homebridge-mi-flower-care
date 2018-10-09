@@ -96,8 +96,6 @@ function MiFlowerCarePlugin(log, config) {
             // Update values
             that.informationService.getCharacteristic(Characteristic.FirmwareRevision)
                 .updateValue(data.firmwareVersion);
-            that.informationService.getCharacteristic(Characteristic.StatusActive)
-                .updateValue(true);
 
             that.batteryService.getCharacteristic(Characteristic.BatteryLevel)
                 .updateValue(data.batteryLevel);
