@@ -47,23 +47,88 @@ function MiFlowerCarePlugin(log, config) {
     this.flora = new MiFlora(this.deviceId);
 
     this.flora.on('data', function (data) {
-        if (data.deviceId = that.deviceId) {
-            that.log("Lux: %s, Temperature: %s, Moisture: %s, Fertility: %s", data.lux, data.temperature, data.moisture, data.fertility);
-            that.storedData.data = data;
+        if (data.deviceId != that.deviceId) {
+            return;
+        }
 
-            that.fakeGatoHistoryService.addEntry({
-                time: new Date().getTime() / 1000,
-                temp: data.temperature,
-                humidity: data.moisture
-            });
+        that.log("Lux: %s, Temperature: %s, Moisture: %s, Fertility: %s", data.lux, data.temperature, data.moisture, data.fertility);
+        that.storedData.data = data;
+
+        that.fakeGatoHistoryService.addEntry({
+            time: new Date().getTime() / 1000,
+            temp: data.temperature,
+            humidity: data.moisture
+        });
+
+        that.lightService.getCharacteristic(Characteristic.CurrentAmbientLightLevel)
+            .updateValue(data.lux);
+        that.lightService.getCharacteristic(Characteristic.StatusActive)
+            .updateValue(true);
+
+        that.tempService.getCharacteristic(Characteristic.CurrentTemperature)
+            .updateValue(data.temperature);
+        that.tempService.getCharacteristic(Characteristic.StatusActive)
+            .updateValue(true);
+
+        that.humidityService.getCharacteristic(Characteristic.CurrentRelativeHumidity)
+            .updateValue(data.moisture);
+        that.humidityService.getCharacteristic(Characteristic.StatusActive)
+            .updateValue(true);
+            
+        if (that.humidityAlert) {
+            that.humidityAlertService.getCharacteristic(Characteristic.ContactSensorState)
+                .updateValue(data.moisture <= that.humidityAlertLevel ? Characteristic.ContactSensorState.CONTACT_NOT_DETECTED : Characteristic.ContactSensorState.CONTACT_DETECTED);
+            that.humidityAlertService.getCharacteristic(Characteristic.StatusActive)
+                .updateValue(true);
+        }
+        
+        if (that.lowLightAlert) {
+            that.lowLightAlertService.getCharacteristic(Characteristic.ContactSensorState)
+                .updateValue(data.lux <= that.lowLightAlertLevel ? Characteristic.ContactSensorState.CONTACT_NOT_DETECTED : Characteristic.ContactSensorState.CONTACT_DETECTED);
+            that.lowLightAlertService.getCharacteristic(Characteristic.StatusActive)
+                .updateValue(true);
         }
     });
 
     this.flora.on('firmware', function (data) {
-        if (data.deviceId = that.deviceId) {
-            that.log("Firmware: %s, Battery level: %s", data.firmwareVersion, data.batteryLevel);
-            that.storedData.firmware = data;
+        if (data.deviceId != that.deviceId) {
+            return;
         }
+
+        that.log("Firmware: %s, Battery level: %s", data.firmwareVersion, data.batteryLevel);
+        that.storedData.firmware = data;
+        
+        // Update values
+        that.informationService.getCharacteristic(Characteristic.FirmwareRevision)
+            .updateValue(data.firmwareVersion);
+        that.informationService.getCharacteristic(Characteristic.StatusActive)
+            .updateValue(true);
+
+        that.batteryService.getCharacteristic(Characteristic.BatteryLevel)
+            .updateValue(data.batteryLevel);
+        that.batteryService.getCharacteristic(Characteristic.StatusLowBattery)
+            .updateValue(data.batteryLevel <= 10 ? Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
+        that.batteryService.getCharacteristic(Characteristic.StatusActive)
+            .updateValue(true);
+
+        that.lightService.getCharacteristic(Characteristic.StatusLowBattery)
+            .updateValue(data.batteryLevel <= 10 ? Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
+
+        that.tempService.getCharacteristic(Characteristic.StatusLowBattery)
+            .updateValue(data.batteryLevel <= 10 ? Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
+    
+        that.humidityService.getCharacteristic(Characteristic.StatusLowBattery)
+            .updateValue(data.batteryLevel <= 10 ? Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
+
+        if (that.humidityAlert) {
+    	    that.humidityAlertService.getCharacteristic(Characteristic.StatusLowBattery)
+                .updateValue(data.batteryLevel <= 10 ? Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
+	    }
+
+         if (that.lowLightAlert) {
+            that.lowLightAlertService.getCharacteristic(Characteristic.StatusLowBattery)
+                .updateValue(data.batteryLevel <= 10 ? Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
+	    }
     });
 
     setInterval(function () {
@@ -148,6 +213,8 @@ MiFlowerCarePlugin.prototype.setUpServices = function () {
     this.batteryService.setCharacteristic(Characteristic.ChargingState, Characteristic.ChargingState.NOT_CHARGEABLE);
     this.batteryService.getCharacteristic(Characteristic.StatusLowBattery)
         .on('get', this.getStatusLowBattery.bind(this));
+    this.batteryService.getCharacteristic(Characteristic.StatusActive)
+        .on('get', this.getStatusActive.bind(this));
 
     this.lightService = new Service.LightSensor(this.name);
     this.lightService.getCharacteristic(Characteristic.CurrentAmbientLightLevel)
@@ -251,7 +318,6 @@ MiFlowerCarePlugin.prototype.setUpServices = function () {
     inherits(PlantSensor, Service);
 
     PlantSensor.UUID = '3C233958-B5C4-4218-A0CD-60B8B971AA0A';
-
 
     this.plantSensorService = new PlantSensor(this.name);
     this.plantSensorService.getCharacteristic(SoilMoisture)
