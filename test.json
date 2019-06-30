@@ -1,5 +1,4 @@
 {
-  "series": [
     {
       "name": "XiaomiMiSensors",
       "columns": [
@@ -61,5 +60,4 @@
         ]
       ]
     }
-  ]
 }
