@@ -1,19 +1,5 @@
     {
       "name": "XiaomiMiSensors",
-      "columns": [
-        "time",
-        "battery",
-        "collectorip",
-        "collectormac",
-        "conductivity",
-        "cputmp",
-        "firmwareversion",
-        "light",
-        "mac",
-        "moisture",
-        "sensorname",
-        "temperature"
-      ],
       "values": [
         [
           "2019-06-23T11:16:52Z",
