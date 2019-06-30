@@ -1,4 +1,7 @@
 {
    "name": "XiaomiMiSensors",
-   "values": "Test"
+   "values": [
+      "eins",
+      "zwei"
+      ]
 }
