@@ -1,9 +1,13 @@
 {
    "name": "XiaomiMiSensors",
+   "columns": [
+      "eins",
+      "zwei"
+      ],
    "values": [
       [
-         "eins":"eins",
-         "zwei":"zwei"
+         "eins",
+         "zwei"
       ]
    ]
 }
