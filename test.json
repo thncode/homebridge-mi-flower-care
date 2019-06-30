@@ -2,8 +2,8 @@
    "name": "XiaomiMiSensors",
    "values": [
       [
-         "eins",
-         "zwei"
+         "eins":"eins",
+         "zwei":"zwei"
       ]
    ]
 }
